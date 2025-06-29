@@ -24,10 +24,18 @@ services:
     image: mongo:7.0
     container_name: verifier-mongo
     restart: unless-stopped
-    ports:
-      - '27017:27017'
     volumes:
       - mongo-data:/data/db
+    env_file:
+      - .env
+    MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+    MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    networks:
+      - local_net
 
 volumes:
   mongo-data:
+
+networks:
+  local_net:
+    driver: bridge
