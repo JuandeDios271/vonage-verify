@@ -1,0 +1,33 @@
+services:
+  vonage-verify:
+    image: vonage-verify:latest
+    build:
+      context: .
+      args:
+        - PORT=${PORT}
+    container_name: vonage-verify
+    ports:
+      - '127.0.0.1:${PORT}:${PORT}'
+    env_file:
+      - .env
+    environment:
+      - PORT=${PORT}
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - local_net
+
+  mongo:
+    image: mongo:7.0
+    container_name: verifier-mongo
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
