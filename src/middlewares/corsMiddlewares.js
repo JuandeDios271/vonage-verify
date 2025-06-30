@@ -17,6 +17,11 @@ const allowedMethods = ['GET', 'POST', 'OPTIONS'];
  *  - If there is no 'origin' (e.g., tools like Postman or curl), allow the request.
  *  - If the origin is in the allowlist, allow the request.
  *  - If not, raise an error that will be handled by subsequent middleware.
+ * 
+ * @param {import('express').Request} req - HTTP request object
+ * @param {function(Error|null, import('cors').CorsOptions|null): void} callback - Callback that defines the result of the source analysis
+ * 
+ * @returns {void}
  */
 const corsOptionsDelegate = function (req, callback) {
   const origin = req.header('Origin');
@@ -47,8 +52,15 @@ const corsOptionsDelegate = function (req, callback) {
 const corsMiddleware = cors(corsOptionsDelegate);
 
 /**
- * Additional middleware to handle CORS errors when an origin is not allowed.
+ * Middleware to handle CORS errors when an origin is not allowed.
  * Returns a clear, detailed response to the client.
+ * 
+ * @param {Error} err - Error object received by the middleware (automatically routed by Express)
+ * @param {import('express').Request} req - HTTP request object
+ * @param {import('express').Response} res - HTTP response object
+ * @param {import('express').NextFunction} next - Function to move to the next middleware (if the error is not CORS)
+ * 
+ * @returns {void} - Returns a 403 response if the error is due to an unauthorized source; otherwise, it delegates the error.
  */
 function handleCorsError(err, req, res, next) {
 

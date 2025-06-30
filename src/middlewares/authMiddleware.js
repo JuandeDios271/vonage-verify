@@ -13,6 +13,12 @@ import basicAuth from 'basic-auth';
  * 
  * If authentication fails, it responds with a 401 status and a standard
  * WWW-Authenticate header for browsers and HTTP clients.
+ * 
+ * @param {import('express').Request} req - HTTP request object
+ * @param {import('express').Response} res - HTTP response object
+ * @param {import('express').NextFunction} next - Function to move to the next middleware
+ * 
+ * @returns {void} - Ends the response with a 401 error or calls `next()` if authenticated
  */
 function authMiddleware( req, res, next ) {
 
