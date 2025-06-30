@@ -3,8 +3,8 @@ import {
     startVerification as start,
     checkVerification as check
 } from '../services/vonageService.js';
-// Utility to clean and validate phone numbers
-import sanitizePhone from '../utils/phoneSanitizer.js';
+import { sanitizePhone } from '../utils/phoneSanitizer.js';
+import { sendResponse } from '../utils/sendResponse.js'
 
 /**
  * Controller to initiate SMS verification.
@@ -24,14 +24,34 @@ export async function startVerification(req, res) {
         // Sanitize and validate the phone number
         const phone = sanitizePhone(req.body.phone);
 
+        if (!phone) {
+            return sendResponse(
+                res,
+                400,
+                'invalid_phone',
+                'Invalid or missing phone number'
+            );
+        }
+
         // Call Vonage service to start verification
         const requestId = await start(phone);
 
         // Responds with the ID that will be used to validate the code
-        res.json({ requestId });
+        return sendResponse(
+            res,
+            200,
+            'verification_started',
+            'Verification started',
+            { requestId }
+        );
     } catch (err) {
         // In case of error (malformed number, Vonage error, etc.)
-        res.status(400).json({ message: err.message || 'Error starting verification' });
+        return sendResponse(
+            res,
+            400,
+            'verification_start_failed',
+            err.message
+        );
     }
 }
 
@@ -55,19 +75,31 @@ export async function checkVerification(req, res) {
 
         // Basic validation of required fields
         if (!requestId || !code) {
-            return res.status(400).json({
-                status: 'missing_fields',
-                message: 'Se requiere requestId y code',
-            })
+            return sendResponse(
+                res,
+                400,
+                'missing_fields',
+                'requestId and code are required'
+            );
         }
 
         // Call Vonage service to validate the code
         await check(requestId, code);
 
         // Response in case of successful verification
-        res.json({ success: true });
+        return sendResponse(
+            res,
+            200,
+            'verification_successful',
+            'Code verified successfully'
+        );
     } catch (err) {
         // Verification failed (incorrect code, expired, etc.)
-        res.status(400).json({ message: err.message || 'Error al verificar el código' });
+        return sendResponse(
+            res,
+            400,
+            'verification_failed',
+            err.message
+        );
     }
 }

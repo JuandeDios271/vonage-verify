@@ -13,7 +13,7 @@
  * @param {string} phoneNumber - Phone number to be sanitized
  * @returns {string|null} - Number in international format or null if invalid
  */
-export default function sanitizePhone(phoneNumber) {
+function sanitizePhone(phoneNumber) {
 
     // If no number is received, null is returned
     if (!phoneNumber) return null;
@@ -34,3 +34,4 @@ export default function sanitizePhone(phoneNumber) {
     // If it does not meet the accepted formats, return null
     return null;
 }
+ export { sanitizePhone }
