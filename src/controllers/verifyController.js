@@ -24,9 +24,7 @@ export async function startVerification(req, res) {
         // Sanitize and validate the phone number
         const phone = sanitizePhone(req.body.phone);
 
-        console.log('[startVerification] phone:', phone) // 👈 LOG 1
-
-        console.log(phone);
+        console.log('[startVerification] phone:', phone);
 
         if (!phone) {
             return sendResponse(
@@ -40,7 +38,7 @@ export async function startVerification(req, res) {
         // Call Vonage service to start verification
         const requestId = await start(phone);
 
-        console.log('[startVerification] requestId:', requestId) // 👈 LOG 2
+        console.log('[startVerification] requestId:', requestId);
 
         // Responds with the ID that will be used to validate the code
         return sendResponse(
@@ -51,12 +49,14 @@ export async function startVerification(req, res) {
             { requestId }
         );
     } catch (err) {
+        console.error('[startVerification] Error:', err);
         // In case of error (malformed number, Vonage error, etc.)
+
+        const isExpectedError = err.message?.includes('Vonage') || err.message?.includes('verificación');
         return sendResponse(
-            res,
-            400,
+            isExpectedError ? 400 : 500,
             'verification_start_failed',
-            err.message
+            err.message || 'Internal server error'
         );
     }
 }
@@ -100,12 +100,13 @@ export async function checkVerification(req, res) {
             'Code verified successfully'
         );
     } catch (err) {
+        console.error('[checkVerification] Error:', err);
         // Verification failed (incorrect code, expired, etc.)
+        const isExpectedError = err.message?.includes('código') || err.message?.includes('verificar');
         return sendResponse(
-            res,
-            400,
+            isExpectedError ? 400 : 500,
             'verification_failed',
-            err.message
+            err.message || 'Internal server error'
         );
     }
 }
