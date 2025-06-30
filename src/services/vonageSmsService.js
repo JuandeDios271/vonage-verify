@@ -9,6 +9,12 @@ const sms = new Sms();
 const options = { sms };
 const vonage = new Vonage(credentials, options);
 
+/**
+ * 
+ * @param {string} to - Phone number in international format
+ * @param {string} message - Text to send
+ * @throws {Error} - In case of API or network failure
+ */
 export async function sendSms(to, message) {
 
     try {
@@ -24,14 +30,14 @@ export async function sendSms(to, message) {
         if( messageStatus !== '0' ) {
 
             console.error('[]Vonage SMS Failed:', errorText);
-            throw new Error(`Vonage SMS Error: ${errorText}`);
+            throw new Error(`[S001] SMS sending error: ${errorText || 'Unknown error'}`);
 
         }
 
         console.log('[Vonage SMS] Succesfully sent');
     } catch (err) {
         console.error('[Vonage SMS] Error:', err);
-        throw err;
+        throw new Error('[S500] The SMS could not be sent. Please try again later.');
     }
     
 }

@@ -31,18 +31,18 @@ export async function startVerification(phoneNumber) {
             workflow_id: 2,
         });
 
-        console.log('[Vonage Verify] Resultado:', result);
+        console.log('[Vonage Verify] Result:', result);
 
         if (result.status !== '0') {
             console.log('[Vonage Verify] Error de API:', result.error_text);
-            throw new Error(`Vonage error (${result.status}): ${result.error_text || 'Error al iniciar la verificación'}`);
+            throw new Error(`[V001] ${result.error_text || 'Verification could not be started'}`);
         }
 
         return result.request_id;
 
     } catch (err) {
         console.error('[Vonage Verify] Error de red o SDK:', err);
-        throw new Error('No se pudo iniciar la verificación. Intenta más tarde.');
+        throw new Error('[E500] Verification failed. Please try again later.');
     }
 
 }
@@ -68,13 +68,13 @@ export async function checkVerification(requestId, code) {
         console.log('[Vonage Verify] Verification:', result);
 
         if (result.status !== '0') {
-            throw new Error(result.error_text || 'Incorrect or expired code');
+            throw new Error(`[V002] ${result.error_text || 'Incorrect or expired code'}`);
         }
 
         return true;
     } catch (err) {
-        console.error('[Vonage Verify] Error en verificación:', err)
-        throw new Error('No se pudo verificar el código. Intenta nuevamente.')
+        console.error('[Vonage Verify] Error en verificación:', err);
+        throw new Error('[E500] The code could not be verified. Please try again.');
     }
 
 }

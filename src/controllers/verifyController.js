@@ -2,9 +2,10 @@
 import {
     startVerification as start,
     checkVerification as check
-} from '../services/vonageService.js';
+} from '../services/vonageVerifyService';
 import { sanitizePhone } from '../utils/phoneSanitizer.js';
 import { sendResponse } from '../utils/sendResponse.js'
+import { parseError } from '../utils/parseError.js'
 
 /**
  * Controller to initiate SMS verification.
@@ -52,12 +53,8 @@ export async function startVerification(req, res) {
         console.error('[startVerification] Error:', err);
         // In case of error (malformed number, Vonage error, etc.)
 
-        const isExpectedError = err.message?.includes('Vonage') || err.message?.includes('verificación');
-        return sendResponse(
-            isExpectedError ? 400 : 500,
-            'verification_start_failed',
-            err.message || 'Internal server error'
-        );
+        const { statusCode, message } = parseError(err);
+        return sendResponse(res, statusCode, 'verification_start_failed', message);
     }
 }
 
@@ -102,11 +99,7 @@ export async function checkVerification(req, res) {
     } catch (err) {
         console.error('[checkVerification] Error:', err);
         // Verification failed (incorrect code, expired, etc.)
-        const isExpectedError = err.message?.includes('código') || err.message?.includes('verificar');
-        return sendResponse(
-            isExpectedError ? 400 : 500,
-            'verification_failed',
-            err.message || 'Internal server error'
-        );
+        const { statusCode, message } = parseError(err);
+        return sendResponse(res, statusCode, 'verification_failed', message);
     }
 }
