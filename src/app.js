@@ -2,6 +2,7 @@ import express from 'express';
 import { corsMiddleware, handleCorsError } from './middlewares/corsMiddlewares.js';
 import { authMiddleware } from './middlewares/authMiddleware.js';
 import verifyRoutes from './routes/verifyRoutes.js';
+import smsRoutes from './routes/smsRoutes.js';
 
 function startApp() {
 
@@ -37,6 +38,7 @@ function startApp() {
 
     // 4. Mount protected routes under /api/verify prefix
     app.use( '/api/verify', verifyRoutes );
+    app.use('/api/sms', smsRoutes);
 
     // 5. Handling CORS-related errors (optional but useful)
     app.use( handleCorsError );

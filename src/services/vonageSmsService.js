@@ -1,13 +1,12 @@
-import { Vonage } from '@vonage/server-sdk';
-import { Sms } from '@vonage/sms';
+import { Auth } from '@vonage/auth';
+import { SMS } from '@vonage/sms';
 
-const credentials = {
+const credentials = new Auth({
   apiKey: process.env.VONAGE_API_KEY,
   apiSecret: process.env.VONAGE_API_SECRET
-};
-const sms = new Sms();
-const options = { sms };
-const vonage = new Vonage(credentials, options);
+});
+const options = {};
+const smsClient = new SMS(credentials, options);
 
 /**
  * 
@@ -18,11 +17,13 @@ const vonage = new Vonage(credentials, options);
 export async function sendSms(to, message) {
 
     try {
-        const response = await vonage.sms.send({
+        const response = await smsClient.send({
             to,
-            from: 'MyApp',
+            from: 'Vonage',
             text: message
         });
+
+        console.log('[Vonage SMS] Raw response:', JSON.stringify(response, null, 2))
 
         const messageStatus = response.messages?.[0]?.status;
         const errorText = response.messages?.[0]?.['error-text'];

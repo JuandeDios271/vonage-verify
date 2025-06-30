@@ -18,23 +18,23 @@ export async function sendVerificationCode(req, res) {
       throw new Error('[E400] Invalid or missing phone number');
     }
 
-    const code = generateCode(6) // código de 6 dígitos
+    const code = generateCode(6); // código de 6 dígitos
 
     // 🔜 Aquí luego guardaremos en Mongo { phone, code, expiresAt }
 
-    const message = `Tu código de verificación es: ${code}`
-    await sendSms(phone, message)
+    const message = `Your verification code is: ${code}`
+    await sendSms(phone, message);
 
-    return sendResponse(res, 200, 'sms_sent', 'Código enviado correctamente')
+    return sendResponse(res, 200, 'sms_sent', 'Code sent successfully');
   } catch (err) {
-    const { statusCode, message } = parseError(err)
-    return sendResponse(res, statusCode, 'sms_failed', message)
+    const { statusCode, message } = parseError(err);
+    return sendResponse(res, statusCode, 'sms_failed', message);
   }
 }
 
 /**
- * Verifica si el código ingresado por el usuario es correcto.
- * Este endpoint será funcional una vez implementes la persistencia.
+ * Verifies that the code entered by the user is correct.
+ * This endpoint will be functional once you implement persistence.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -44,7 +44,7 @@ export async function verifySmsCode(req, res) {
     const { phone, code } = req.body
 
     if (!phone || !code) {
-      throw new Error('[E400] Se requiere número de teléfono y código')
+      throw new Error('[E400] Phone number and code required');
     }
 
     // 🔜 Aquí luego consultarás en Mongo si el código es válido
@@ -53,12 +53,12 @@ export async function verifySmsCode(req, res) {
     const valid = false // por ahora, sólo simulado
 
     if (!valid) {
-      throw new Error('[S002] Código incorrecto o expirado')
+      throw new Error('[S002] Incorrect or expired code');
     }
 
-    return sendResponse(res, 200, 'sms_verified', 'Código verificado correctamente')
+    return sendResponse(res, 200, 'sms_verified', 'Code verified successfully');
   } catch (err) {
-    const { statusCode, message } = parseError(err)
-    return sendResponse(res, statusCode, 'sms_verification_failed', message)
+    const { statusCode, message } = parseError(err);
+    return sendResponse(res, statusCode, 'sms_verification_failed', message);
   }
 }

@@ -2,7 +2,7 @@
 import {
     startVerification as start,
     checkVerification as check
-} from '../services/vonageVerifyService';
+} from '../services/vonageVerifyService.js';
 import { sanitizePhone } from '../utils/phoneSanitizer.js';
 import { sendResponse } from '../utils/sendResponse.js'
 import { parseError } from '../utils/parseError.js'
