@@ -24,6 +24,10 @@ export async function startVerification(req, res) {
         // Sanitize and validate the phone number
         const phone = sanitizePhone(req.body.phone);
 
+        console.log('[startVerification] phone:', phone) // 👈 LOG 1
+
+        console.log(phone);
+
         if (!phone) {
             return sendResponse(
                 res,
@@ -35,6 +39,8 @@ export async function startVerification(req, res) {
 
         // Call Vonage service to start verification
         const requestId = await start(phone);
+
+        console.log('[startVerification] requestId:', requestId) // 👈 LOG 2
 
         // Responds with the ID that will be used to validate the code
         return sendResponse(

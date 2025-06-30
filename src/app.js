@@ -46,7 +46,9 @@ function startApp() {
 
     // Server launch
     app.listen( port, () => {
-        console.log(`Server running on port ${PORT}`);
+        console.log(`Server running on port ${port}`);
     } );
 
 }
+
+export { startApp }

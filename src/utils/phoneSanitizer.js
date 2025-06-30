@@ -15,11 +15,13 @@
  */
 function sanitizePhone(phoneNumber) {
 
+    console.log('[Utils] sanitizePhone:', phoneNumber);
+
     // If no number is received, null is returned
     if (!phoneNumber) return null;
 
     // Remove non-numeric characters, except the "+" prefix
-    const digitsOnly = phoneNumber.replace(/[^\d+]/g, '');
+    const digitsOnly = phoneNumber.replace(/\D/g, '');
 
     // If it starts with '52' (without +) and has 12 digits, the '+' is added
     if (digitsOnly.startsWith('52') && digitsOnly.length === 12) {

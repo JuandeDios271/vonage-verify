@@ -20,12 +20,22 @@ const vonage = new Vonage(credentials, options)
  * @link https://www.npmjs.com/package/%40vonage/server-sdk
  */
 export function startVerification(phoneNumber) {
+    console.log('[Vonage] Sending verification to:', phoneNumber);
     return new Promise((resolve, reject) => {
-        vonage.verify.start({ number: phoneNumber, brand: 'MiApp' }, (err, result) => {
-            if (err) return reject(err)
-            if (result.status !== '0') return reject(new Error(result.error_text))
-            resolve(result.request_id)
-        })
+        vonage.verify.start(
+            {
+                number: phoneNumber,
+                brand: 'MiApp',
+                workflow_id: 2
+            },
+            (err, result) => {
+                console.log('[Vonage Callback] err:', err)
+                console.log('[Vonage Callback] result:', result)
+                if (err) return reject(err)
+                if (result.status !== '0') return reject(new Error(result.error_text))
+                resolve(result.request_id)  
+            }
+        )
     })
 }
 
