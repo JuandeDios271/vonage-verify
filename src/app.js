@@ -4,6 +4,7 @@ import { corsMiddleware, handleCorsError } from './middlewares/corsMiddlewares.j
 import { authMiddleware } from './middlewares/authMiddleware.js';
 import verifyRoutes from './routes/verifyRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
+import requestLogger from './middlewares/requestLoggerMiddleware.js';
 
 function startApp() {
 
@@ -12,7 +13,7 @@ function startApp() {
     mongoose
     .connect(process.env.MONGO_URI)
     .then(() => {
-      console.log('[MongoDB] Conectado correctamente');
+      console.log('[MongoDB] Connected succesfully');
 
         /**
         * 🛡️ MIDDLEWARE ORDER (IMPORTANT):
@@ -41,6 +42,7 @@ function startApp() {
 
         // 3. Validate basic authentication (protect all routes)
         app.use( authMiddleware );
+        app.use( requestLogger );
 
         // 4. Mount protected routes under /api/verify prefix
         app.use( '/api/verify', verifyRoutes );

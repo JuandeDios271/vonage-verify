@@ -1,4 +1,4 @@
-import logger from "./logger";
+import logger from "./logger.js";
 
 /**
  * Sanitize and normalize a phone number so that it is in the Mexican international format.

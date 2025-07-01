@@ -33,7 +33,8 @@ export async function sendVerificationCode(req, res) {
     const message = `Your verification code is: ${code}`
     await sendSms(phoneNumber, message);
 
-    await VerificationCode.create({ phoneNumber, code, expiresAt });
+    logger.info(`[sendVerificationCode->VerificationCode.create()] Payload to save: ${JSON.stringify({ phoneNumber, code, expiresAt })}`);
+    await VerificationCode.create({ phone: phoneNumber, code, expiresAt });
 
     return sendResponse(res, 200, 'sms_sent', 'Code sent successfully');
   } catch (err) {
@@ -61,15 +62,16 @@ export async function verifySmsCode(req, res) {
     logger.info(`[verifySmsCode] phone: ${phone}, code: ${code}`);
 
     const phoneNumber = sanitizePhone(phone);
+    const codeTrimmed = code?.toString().trim();
 
-    if (!phoneNumber || !code) {
+    if (!phoneNumber || !codeTrimmed) {
       throw new Error('[E400] Phone number and code required');
     }
 
     // 🔜 Aquí luego consultarás en Mongo si el código es válido
     const record = await VerificationCode.findOne({
-      phoneNumber,
-      code,
+      phone: phoneNumber,
+      code: codeTrimmed,
       used: false,
       expiresAt: { $gt: new Date() }
     });

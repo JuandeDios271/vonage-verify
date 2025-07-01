@@ -1,6 +1,6 @@
 import { Auth } from '@vonage/auth';
 import { SMS } from '@vonage/sms';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 
 const credentials = new Auth({
   apiKey: process.env.VONAGE_API_KEY,

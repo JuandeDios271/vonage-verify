@@ -1,7 +1,7 @@
 // Official Vonage SDK for SMS sending and verification
 import { Auth } from '@vonage/auth';
 import { Verify } from '@vonage/verify';
-import logger from '../utils/logger';
+import logger from '../utils/logger.js';
 
 const credentials = new Auth({
   apiKey: process.env.VONAGE_API_KEY,
