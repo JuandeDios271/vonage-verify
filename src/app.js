@@ -43,7 +43,7 @@ function startApp() {
         app.use( express.json() ); 
 
         // 3. Validate basic authentication (protect all routes)
-        app.use( helmet );
+        app.use( helmet() );
         app.use( authMiddleware );
         app.use( requestLogger );
         app.use( globalRateLimiter );
