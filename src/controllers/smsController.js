@@ -26,6 +26,16 @@ export async function sendVerificationCode(req, res) {
       throw new Error('[E400] Invalid or missing phone number');
     }
 
+    // Limit: max 5 codes per IP or PhoneNumber every 5 minutes
+    const recetAttempts = await VerificationCode.countDocuments({
+      phone: phoneNumber,
+      createdAt: { $gt: new Date( Date.now() - 5 * 60 * 1000) }
+    });
+
+    if ( recetAttempts >= 5 ) {
+      throw new Error( '[E429] Too many requests for this number. Try later.' );
+    }
+
     const code = generateCode(6); // código de 6 dígitos
 
     const expiresAt = new Date( Date.now() + 5 * 60 * 1000 );
