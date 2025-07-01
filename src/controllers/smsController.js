@@ -1,3 +1,4 @@
+import { VerificationCode } from '../models/VerificationCode.js'
 import { sanitizePhone } from '../utils/phoneSanitizer.js'
 import { sendResponse } from '../utils/sendResponse.js'
 import { parseError } from '../utils/parseError.js'
@@ -20,10 +21,12 @@ export async function sendVerificationCode(req, res) {
 
     const code = generateCode(6); // código de 6 dígitos
 
-    // 🔜 Aquí luego guardaremos en Mongo { phone, code, expiresAt }
+    const expiresAt = new Date( Date.now() + 5 * 60 * 1000 );
 
     const message = `Your verification code is: ${code}`
     await sendSms(phone, message);
+
+    await VerificationCode.create({ phone, code, expiresAt });
 
     return sendResponse(res, 200, 'sms_sent', 'Code sent successfully');
   } catch (err) {
@@ -41,20 +44,29 @@ export async function sendVerificationCode(req, res) {
  */
 export async function verifySmsCode(req, res) {
   try {
-    const { phone, code } = req.body
+    const { phone, code } = req.body;
 
-    if (!phone || !code) {
+    const phoneNumber = sanitizePhone(phone);
+
+    if (!phoneNumber || !code) {
       throw new Error('[E400] Phone number and code required');
     }
 
     // 🔜 Aquí luego consultarás en Mongo si el código es válido
-    // const record = await VerificationCode.findOne({ phone, code })
+    const record = await VerificationCode.findOne({
+      phoneNumber,
+      code,
+      used: false,
+      expiresAt: { $gt: new Date() }
+    });
 
-    const valid = false // por ahora, sólo simulado
-
-    if (!valid) {
+    if (!record) {
       throw new Error('[S002] Incorrect or expired code');
     }
+
+    // Mark as used
+    record.used = true
+    await record.save();
 
     return sendResponse(res, 200, 'sms_verified', 'Code verified successfully');
   } catch (err) {

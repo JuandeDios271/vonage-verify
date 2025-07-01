@@ -1,9 +1,12 @@
 import { Router } from 'express';
-import { sendVerificationCode } from '../controllers/smsController.js';
+import { sendVerificationCode, verifySmsCode } from '../controllers/smsController.js';
 
 const router = Router();
 
-// Ruta para enviar código SMS
-router.post('/send-code', sendVerificationCode);
+// Send SMS code
+router.post( '/send-code', sendVerificationCode );
+
+// Verify recieved code
+router.post( '/verify-code', verifySmsCode );
 
 export default router;
