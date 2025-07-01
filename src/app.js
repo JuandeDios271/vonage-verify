@@ -5,6 +5,7 @@ import { authMiddleware } from './middlewares/authMiddleware.js';
 import verifyRoutes from './routes/verifyRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
 import requestLogger from './middlewares/requestLoggerMiddleware.js';
+import globalRateLimiter from './middlewares/rateLimitMiddleware.js';
 
 function startApp() {
 
@@ -43,6 +44,7 @@ function startApp() {
         // 3. Validate basic authentication (protect all routes)
         app.use( authMiddleware );
         app.use( requestLogger );
+        app.use( globalRateLimiter );
 
         // 4. Mount protected routes under /api/verify prefix
         app.use( '/api/verify', verifyRoutes );
