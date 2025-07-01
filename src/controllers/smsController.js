@@ -4,18 +4,25 @@ import { sendResponse } from '../utils/sendResponse.js'
 import { parseError } from '../utils/parseError.js'
 import { sendSms } from '../services/vonageSmsService.js'
 import { generateCode } from '../utils/codeGenerator.js'
+import logger from '../utils/logger.js'
 
 /**
  * Send an SMS with a generated code to the specified number
  *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
+ * @param {import('express').Request} req - HTTP request that must include `phone` in the body
+ * @param {import('express').Response} res - HTTP Response Object
+ * 
+ * @throws {Error} - In case of API invalid parameters
+ * 
+ * @returns {void}
  */
 export async function sendVerificationCode(req, res) {
   try {
-    const phone = sanitizePhone(req.body.phone);
+    const phoneNumber = sanitizePhone(req.body.phone);
 
-    if (!phone) {
+    logger.info(`[sendVerificationCode] phone: ${phoneNumber}`);
+
+    if (!phoneNumber) {
       throw new Error('[E400] Invalid or missing phone number');
     }
 
@@ -24,12 +31,13 @@ export async function sendVerificationCode(req, res) {
     const expiresAt = new Date( Date.now() + 5 * 60 * 1000 );
 
     const message = `Your verification code is: ${code}`
-    await sendSms(phone, message);
+    await sendSms(phoneNumber, message);
 
-    await VerificationCode.create({ phone, code, expiresAt });
+    await VerificationCode.create({ phoneNumber, code, expiresAt });
 
     return sendResponse(res, 200, 'sms_sent', 'Code sent successfully');
   } catch (err) {
+    logger.error(`[sendVerificationCode] Error:' ${err}`);
     const { statusCode, message } = parseError(err);
     return sendResponse(res, statusCode, 'sms_failed', message);
   }
@@ -39,12 +47,18 @@ export async function sendVerificationCode(req, res) {
  * Verifies that the code entered by the user is correct.
  * This endpoint will be functional once you implement persistence.
  *
- * @param {import('express').Request} req
- * @param {import('express').Response} res
+ * @param {import('express').Request} req - HTTP request that must include `phone` and `code` in the body
+ * @param {import('express').Response} res - HTTP Response Object
+ * 
+ * @throws {Error} - If invalid parameters or the code expires
+ * 
+ * @returns {void}
  */
 export async function verifySmsCode(req, res) {
   try {
     const { phone, code } = req.body;
+
+    logger.info(`[verifySmsCode] phone: ${phone}, code: ${code}`);
 
     const phoneNumber = sanitizePhone(phone);
 
@@ -70,6 +84,7 @@ export async function verifySmsCode(req, res) {
 
     return sendResponse(res, 200, 'sms_verified', 'Code verified successfully');
   } catch (err) {
+    logger.error(`[verifySmsCode] Error: ${err}`);
     const { statusCode, message } = parseError(err);
     return sendResponse(res, statusCode, 'sms_verification_failed', message);
   }

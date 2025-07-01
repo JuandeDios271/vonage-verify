@@ -1,6 +1,7 @@
 // Official Vonage SDK for SMS sending and verification
 import { Auth } from '@vonage/auth';
 import { Verify } from '@vonage/verify';
+import logger from '../utils/logger';
 
 const credentials = new Auth({
   apiKey: process.env.VONAGE_API_KEY,
@@ -21,7 +22,7 @@ const verifyClient  = new Verify(credentials, options);
  * @link https://www.npmjs.com/package/%40vonage/server-sdk
  */
 export async function startVerification(phoneNumber) {
-    console.log('[Vonage] Sending verification to:', phoneNumber);
+    logger.info('[Vonage] Sending verification to:', phoneNumber);
 
     try {
 
@@ -31,17 +32,17 @@ export async function startVerification(phoneNumber) {
             workflow_id: 2,
         });
 
-        console.log('[Vonage Verify] Result:', result);
+        logger.info('[Vonage Verify] Result:', result);
 
         if (result.status !== '0') {
-            console.log('[Vonage Verify] Error de API:', result.error_text);
+            logger.error('[Vonage Verify] Error de API:', result.error_text);
             throw new Error(`[V001] ${result.error_text || 'Verification could not be started'}`);
         }
 
         return result.request_id;
 
     } catch (err) {
-        console.error('[Vonage Verify] Error de red o SDK:', err);
+        logger.error('[Vonage Verify] Error de red o SDK:', err);
         throw new Error('[E500] Verification failed. Please try again later.');
     }
 
@@ -65,7 +66,7 @@ export async function checkVerification(requestId, code) {
             code,
         });
 
-        console.log('[Vonage Verify] Verification:', result);
+        logger.info('[Vonage Verify] Verification:', result);
 
         if (result.status !== '0') {
             throw new Error(`[V002] ${result.error_text || 'Incorrect or expired code'}`);
@@ -73,7 +74,7 @@ export async function checkVerification(requestId, code) {
 
         return true;
     } catch (err) {
-        console.error('[Vonage Verify] Error en verificación:', err);
+        logger.error('[Vonage Verify] Error en verificación:', err);
         throw new Error('[E500] The code could not be verified. Please try again.');
     }
 

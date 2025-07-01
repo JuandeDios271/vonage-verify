@@ -6,6 +6,7 @@ import {
 import { sanitizePhone } from '../utils/phoneSanitizer.js';
 import { sendResponse } from '../utils/sendResponse.js'
 import { parseError } from '../utils/parseError.js'
+import logger from '../utils/logger.js';
 
 /**
  * Controller to initiate SMS verification.
@@ -25,7 +26,7 @@ export async function startVerification(req, res) {
         // Sanitize and validate the phone number
         const phone = sanitizePhone(req.body.phone);
 
-        console.log('[startVerification] phone:', phone);
+        logger.info(`'[startVerification] phone:' ${phone}`);
 
         if (!phone) {
             return sendResponse(
@@ -39,7 +40,7 @@ export async function startVerification(req, res) {
         // Call Vonage service to start verification
         const requestId = await start(phone);
 
-        console.log('[startVerification] requestId:', requestId);
+        logger.info(`[startVerification] requestId:' ${requestId}`);
 
         // Responds with the ID that will be used to validate the code
         return sendResponse(
@@ -50,9 +51,9 @@ export async function startVerification(req, res) {
             { requestId }
         );
     } catch (err) {
-        console.error('[startVerification] Error:', err);
-        // In case of error (malformed number, Vonage error, etc.)
+        logger.error(`[startVerification] Error:' ${err}`);
 
+        // In case of error (malformed number, Vonage error, etc.)
         const { statusCode, message } = parseError(err);
         return sendResponse(res, statusCode, 'verification_start_failed', message);
     }
@@ -76,6 +77,8 @@ export async function checkVerification(req, res) {
 
         const { requestId, code } = req.body;
 
+        logger.info(`'[checkVerification] requestId:' ${requestId}, code: ${code}`);
+
         // Basic validation of required fields
         if (!requestId || !code) {
             return sendResponse(
@@ -97,7 +100,7 @@ export async function checkVerification(req, res) {
             'Code verified successfully'
         );
     } catch (err) {
-        console.error('[checkVerification] Error:', err);
+        logger.error(`[checkVerification] Error:' ${err}`);
         // Verification failed (incorrect code, expired, etc.)
         const { statusCode, message } = parseError(err);
         return sendResponse(res, statusCode, 'verification_failed', message);
