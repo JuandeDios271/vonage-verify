@@ -1,3 +1,5 @@
+import logger from "./logger.js";
+
 /**
  * Sanitize and normalize a phone number so that it is in the Mexican international format.
  * 
@@ -11,11 +13,12 @@
  * - Otherwise (invalid format), null is returned.
  * 
  * @param {string} phoneNumber - Phone number to be sanitized
+ * 
  * @returns {string|null} - Number in international format or null if invalid
  */
 function sanitizePhone(phoneNumber) {
 
-    console.log('[Utils] sanitizePhone:', phoneNumber);
+    logger.info(`[Utils] sanitizePhone:' ${phoneNumber}`);
 
     // If no number is received, null is returned
     if (!phoneNumber) return null;
