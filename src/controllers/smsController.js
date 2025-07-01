@@ -5,6 +5,7 @@ import { parseError } from '../utils/parseError.js'
 import { sendSms } from '../services/vonageSmsService.js'
 import { generateCode } from '../utils/codeGenerator.js'
 import logger from '../utils/logger.js'
+import bcrypt from 'bcrypt';
 
 /**
  * Send an SMS with a generated code to the specified number
@@ -18,12 +19,15 @@ import logger from '../utils/logger.js'
  */
 export async function sendVerificationCode(req, res) {
   try {
+
     const phoneNumber = sanitizePhone(req.body.phone);
 
     logger.info(`[sendVerificationCode] phone: ${phoneNumber}`);
 
     if (!phoneNumber) {
+
       throw new Error('[E400] Invalid or missing phone number');
+
     }
 
     // Limit: max 5 codes per IP or PhoneNumber every 5 minutes
@@ -33,20 +37,33 @@ export async function sendVerificationCode(req, res) {
     });
 
     if ( recetAttempts >= 5 ) {
+
       throw new Error( '[E429] Too many requests for this number. Try later.' );
+
     }
 
     const code = generateCode(6); // código de 6 dígitos
-
     const expiresAt = new Date( Date.now() + 5 * 60 * 1000 );
-
     const message = `Your verification code is: ${code}`
     await sendSms(phoneNumber, message);
 
-    logger.info(`[sendVerificationCode->VerificationCode.create()] Payload to save: ${JSON.stringify({ phoneNumber, code, expiresAt })}`);
-    await VerificationCode.create({ phone: phoneNumber, code, expiresAt });
+    /**
+     * bcrypt library to hash the code
+     * 
+     * @link https://www.npmjs.com/package/bcrypt
+     */
+    const saltRounds = 10;
+    const hashedCode = await bcrypt.hash(code, saltRounds);
+
+    logger.info(`[sendVerificationCode->VerificationCode.create()] Payload to save: ${JSON.stringify({ phoneNumber, code, hashedCode, expiresAt })}`);
+    await VerificationCode.create({
+      phone: phoneNumber,
+      code: hashedCode,
+      expiresAt
+    });
 
     return sendResponse(res, 200, 'sms_sent', 'Code sent successfully');
+
   } catch (err) {
     logger.error(`[sendVerificationCode] Error:' ${err}`);
     const { statusCode, message } = parseError(err);
@@ -78,26 +95,47 @@ export async function verifySmsCode(req, res) {
       throw new Error('[E400] Phone number and code required');
     }
 
-    // 🔜 Aquí luego consultarás en Mongo si el código es válido
-    const record = await VerificationCode.findOne({
+    if ( !/^\d{6}$/.test(codeTrimmed) ) {
+      throw new Error('[E422] Code must be a 6-digit number');
+    }
+
+    // Search all valid codes (unused and not expired)
+    const possibleCodes = await VerificationCode.find({
       phone: phoneNumber,
-      code: codeTrimmed,
       used: false,
       expiresAt: { $gt: new Date() }
-    });
+    }).select('+code');
 
-    if (!record) {
+    let matchedRecord = null;
+
+    // Compare hashed with bcrypt
+    for ( const record of possibleCodes ) {
+      /**
+       * Compare bcrypt
+       * 
+       * @link https://www.npmjs.com/package/bcrypt
+       */
+      const match = await bcrypt.compare( codeTrimmed, record.code );
+      if ( match ) {
+        matchedRecord = record;
+        break;
+      }
+    }
+
+    if (!matchedRecord) {
       throw new Error('[S002] Incorrect or expired code');
     }
 
     // Mark as used
-    record.used = true
-    await record.save();
+    matchedRecord.used = true
+    await matchedRecord.save();
 
     return sendResponse(res, 200, 'sms_verified', 'Code verified successfully');
   } catch (err) {
+
     logger.error(`[verifySmsCode] Error: ${err}`);
     const { statusCode, message } = parseError(err);
     return sendResponse(res, statusCode, 'sms_verification_failed', message);
+
   }
 }

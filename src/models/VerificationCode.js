@@ -1,15 +1,30 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 const verificationCodeSchema = new mongoose.Schema({
-    phone: { type: String, required: true },
-    code: { type: String, required: true },
-    expiresAt: { type: Date, required: true },
-    used: { type: Boolean, default: false }
+  phone: {
+    type: String,
+    required: true,
+    index: true
+  },
+  code: {
+    type: String,
+    required: true,
+    select: false // Oculta por defecto
+  },
+  used: {
+    type: Boolean,
+    default: false
+  },
+  expiresAt: {
+    type: Date,
+    required: true,
+    index: true
+  }
 }, {
-    timestamps: true
-})
+  timestamps: true
+});
 
-verificationCodeSchema.index({ phone: 1, code: 1 }); // Para búsqueda eficiente
-verificationCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // TTL automático
+// TTL automático (opcional, si no está ya configurado)
+verificationCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-export const VerificationCode = mongoose.model( 'VerificationCode', verificationCodeSchema );
+export const VerificationCode = mongoose.model('VerificationCode', verificationCodeSchema);
