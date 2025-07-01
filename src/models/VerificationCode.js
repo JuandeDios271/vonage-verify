@@ -18,7 +18,10 @@ const verificationCodeSchema = new mongoose.Schema({
   expiresAt: {
     type: Date,
     required: true
-  }
+  },
+  // Opcionales para trazabilidad
+  ip: String,
+  userAgent: String
 }, {
   timestamps: true
 });
