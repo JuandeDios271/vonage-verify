@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import helmet from 'helmet';
 import { corsMiddleware, handleCorsError } from './middlewares/corsMiddlewares.js';
 import { authMiddleware } from './middlewares/authMiddleware.js';
 import verifyRoutes from './routes/verifyRoutes.js';
@@ -42,6 +43,7 @@ function startApp() {
         app.use( express.json() ); 
 
         // 3. Validate basic authentication (protect all routes)
+        app.use( helmet );
         app.use( authMiddleware );
         app.use( requestLogger );
         app.use( globalRateLimiter );
