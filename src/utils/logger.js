@@ -3,8 +3,11 @@ import 'winston-daily-rotate-file'
 import path from 'path'
 import fs from 'fs'
 
+// Read level from .env or use 'info' by default
+const logLevel = process.env.LOG_LEVEL || 'info';
+
 // Path where logs will be stored
-const logDir = path.resolve('logs')
+const logDir = path.resolve('logs');
 
 // Create logs directory if it doesn't exist
 if (!fs.existsSync(logDir)) {
@@ -16,7 +19,7 @@ const customLevels = {
     levels: {
         error: 0,
         warn: 1,
-        http: 2, // used for morgan
+        http: 2,
         info: 3,
         debug: 4
     },
@@ -27,12 +30,12 @@ const customLevels = {
         info: 'green',
         debug: 'gray'
     }
-}
+};
 
-winston.addColors(customLevels.colors)
+winston.addColors(customLevels.colors);
 
 // Transport for daily files
-const transport = new winston.transports.DailyRotateFile({
+const fileTransport = new winston.transports.DailyRotateFile({
     filename: `${logDir}/app-%DATE%.log`,
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
@@ -41,25 +44,28 @@ const transport = new winston.transports.DailyRotateFile({
     level: 'http'
 });
 
+// Transport for console (useful with docker logs)
+const consoleTransport = new winston.transports.Console({
+    level: logLevel,
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+    )
+});
 
 // Create logger with custom levels
 const logger = winston.createLogger({
     levels: customLevels.levels,
-    level: 'http',
+    level: logLevel,
     format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.printf(({ timestamp, level, message }) => {
-        return `${timestamp} [${level.toUpperCase()}] ${message}`
+            return `${timestamp} [${level.toUpperCase()}] ${message}`
         })
     ),
     transports: [
-        transport,
-        new winston.transports.Console({
-            format: winston.format.combine(
-                winston.format.colorize(),
-                winston.format.simple()
-            )
-        })
+        fileTransport,
+        consoleTransport
     ]
 });
 
