@@ -27,7 +27,7 @@ export async function storeVerificationCode(phone, code, expiresAt) {
   });
 
   if (recentCount >= 5) {
-    await banPhone(phone, 'Too many code requests in short time', 60); // 1 hora
+    await banPhone(phone, 'Too many code requests in short time'); // 1 hora
     throw new Error('[E429] Too many requests. Phone temporarily banned.');
   }
 
@@ -55,7 +55,7 @@ export async function isRateLimited(phone, limit = 5, windowMinutes = 5) {
   const exceeded = recentAttempts >= limit;
 
   if (exceeded) {
-    await banPhone(phone, 'Too many SMS requests', 60); // baneo por 1 hora
+    await banPhone(phone, 'Too many SMS requests'); // baneo por 1 hora
   }
 
   return exceeded;
@@ -98,7 +98,7 @@ export async function verifyCode(phone, code) {
   });
 
   if (recentFailures >= 5) {
-    await banPhone(phone, 'Too many failed verifications', 60); // 1 hora
+    await banPhone(phone, 'Too many failed verifications'); // 1 hora
   }
 
   return false;
