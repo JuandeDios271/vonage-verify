@@ -53,7 +53,7 @@ export async function isRateLimited(phone, limit = 5, windowMinutes = 5) {
 export async function verifyCode(phone, code) {
   const possibleCodes = await VerificationCode.find({
     phone,
-    used: false,
+    verified: false,
     expiresAt: { $gt: new Date() }
   }).select('+code');
 
@@ -66,7 +66,7 @@ export async function verifyCode(phone, code) {
      */
     const match = await bcrypt.compare(code, record.code)
     if (match) {
-      record.used = true;
+      record.verified = true;
       await record.save();
       return true;
     }

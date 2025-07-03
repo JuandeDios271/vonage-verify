@@ -11,7 +11,7 @@ const verificationCodeSchema = new mongoose.Schema({
     required: true,
     select: false // Oculta por defecto
   },
-  used: {
+  verified: {
     type: Boolean,
     default: false
   },
