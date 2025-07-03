@@ -1,4 +1,5 @@
 import { VerificationCode } from '../models/VerificationCode.js';
+import { banPhone } from './banHelper.js';
 import bcrypt from 'bcrypt';
 
 /**
@@ -18,6 +19,17 @@ export async function storeVerificationCode(phone, code, expiresAt) {
    */
   const saltRounds = 10;
   const hashedCode = await bcrypt.hash(code, saltRounds);
+
+  // 🔐 Verificar número de códigos recientes antes de guardar
+  const recentCount = await VerificationCode.countDocuments({
+    phone,
+    createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) } // últimos 5 minutos
+  });
+
+  if (recentCount >= 5) {
+    await banPhone(phone, 'Too many code requests in short time'); // 1 hora
+    throw new Error('[E429] Too many requests. Phone temporarily banned.');
+  }
 
   await VerificationCode.create({
     phone,
@@ -40,7 +52,13 @@ export async function isRateLimited(phone, limit = 5, windowMinutes = 5) {
     createdAt: { $gt: new Date(Date.now() - windowMinutes * 60 * 1000) }
   });
 
-  return recentAttempts >= limit;
+  const exceeded = recentAttempts >= limit;
+
+  if (exceeded) {
+    await banPhone(phone, 'Too many SMS requests'); // baneo por 1 hora
+  }
+
+  return exceeded;
 }
 
 /**
@@ -70,6 +88,17 @@ export async function verifyCode(phone, code) {
       await record.save();
       return true;
     }
+  }
+
+  // No match found → count recent failed attempts
+  const recentFailures = await VerificationCode.countDocuments({
+    phone,
+    verified: false,
+    expiresAt: { $gt: new Date() }
+  });
+
+  if (recentFailures >= 5) {
+    await banPhone(phone, 'Too many failed verifications'); // 1 hora
   }
 
   return false;
