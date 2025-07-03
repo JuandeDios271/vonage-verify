@@ -5,6 +5,7 @@ import { sendSms } from '../services/vonageSmsService.js';
 import { generateCode } from '../utils/codeGenerator.js';
 import { sendCodeSchema, verifyCodeSchema } from '../validators/smsValidator.js';
 import { isRateLimited, storeVerificationCode, verifyCode } from '../helpers/smsVerificationHelper.js';
+import { isPhoneBanned } from '../helpers/banHelper.js'; // al inicio del archivo
 import logger from '../utils/logger.js';
 
 /**
@@ -27,7 +28,13 @@ export async function sendVerificationCode(req, res) {
     }
 
     const phoneNumber = sanitizePhone(validation.data.phone);
-    if (!phoneNumber) throw new Error('[E400] Invalid or missing phone number');
+    if (!phoneNumber) {
+      throw new Error('[E400] Invalid or missing phone number');
+    }
+
+    if (await isPhoneBanned(phoneNumber)) {
+      throw new Error('[E403] This phone number is temporarily banned');
+    }
 
     logger.info(`[sendVerificationCode] phone: ${phoneNumber}`);
 
@@ -77,6 +84,10 @@ export async function verifySmsCode(req, res) {
 
     if (!phoneNumber || !code) {
       throw new Error('[E400] Phone number and code required');
+    }
+
+    if (await isPhoneBanned(phoneNumber)) {
+      throw new Error('[E403] This phone number is temporarily banned');
     }
 
     logger.info(`[verifySmsCode] phone: ${phoneNumber}, code: ${code}`);
