@@ -7,6 +7,8 @@ import verifyRoutes from './routes/verifyRoutes.js';
 import smsRoutes from './routes/smsRoutes.js';
 import requestLogger from './middlewares/requestLoggerMiddleware.js';
 import globalRateLimiter from './middlewares/rateLimitMiddleware.js';
+import logger from './utils/logger.js';
+import morgan from 'morgan';
 
 function startApp() {
 
@@ -37,6 +39,10 @@ function startApp() {
         // Global Middlewares
 
         // 1. Allow requests from defined origins (with credentials)
+        const morganStream = {
+            write: message => logger.http(message.trim())
+        };
+        app.use(morgan('combined', { stream: morganStream }));
         app.use( corsMiddleware );
 
         // 2. Parse JSON from the body (required for modern REST APIs)
