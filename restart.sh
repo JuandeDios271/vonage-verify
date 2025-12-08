@@ -15,7 +15,7 @@ fi
 docker compose down
 
 # Paso 2: construir la imagen
-docker compose build --no-cache
+docker compose build
 
 # Paso 3: escanear la imagen
 echo "🔍 Escaneando imagen con Trivy..."

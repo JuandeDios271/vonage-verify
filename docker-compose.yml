@@ -13,27 +13,11 @@ services:
     environment:
       - PORT=${PORT}
     restart: unless-stopped
-    depends_on:
-      - mongo
     volumes:
       - ./logs:/app/logs
     networks:
-      - local_net
-
-  mongo:
-    image: mongo:7.0
-    container_name: verifier-mongo
-    restart: unless-stopped
-    volumes:
-      - mongo-data:/data/db
-    env_file:
-      - .env
-    networks:
-      - local_net
-
-volumes:
-  mongo-data:
+      - shared_net
 
 networks:
-  local_net:
-    driver: bridge
+  shared_net:
+    external: true
