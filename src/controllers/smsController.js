@@ -46,7 +46,7 @@ export async function sendVerificationCode(req, res) {
     const code = generateCode(6);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    await sendSms(phoneNumber, `Tu código de verificación para Nexyo es: ${code}. No lo compartas con nadie.`);
+    await sendSms(phoneNumber, `Tu codigo de verificacion para Nexyo es: ${code}. No lo compartas con nadie.`);
     logger.info(`[sendVerificationCode] SMS sent to: ${phoneNumber}`);
 
     await storeVerificationCode(phoneNumber, code, expiresAt);
