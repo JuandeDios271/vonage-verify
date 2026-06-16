@@ -1,4 +1,26 @@
 services:
+  mongo:
+    image: mongo:7
+    container_name: vonage-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - vonage_net
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'mongosh "mongodb://$$MONGO_INITDB_ROOT_USERNAME:$$MONGO_INITDB_ROOT_PASSWORD@localhost:27017/admin" --eval "db.adminCommand(''ping'')"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   vonage-verify:
     image: vonage-verify:latest
     build:
@@ -15,9 +37,15 @@ services:
     restart: unless-stopped
     volumes:
       - ./logs:/app/logs
+    depends_on:
+      mongo:
+        condition: service_healthy
     networks:
-      - shared_net
+      - vonage_net
+
+volumes:
+  mongo_data:
 
 networks:
-  shared_net:
-    external: true
+  vonage_net:
+    driver: bridge
