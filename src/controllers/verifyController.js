@@ -90,7 +90,7 @@ export async function checkVerification(req, res) {
         }
 
         // Call Vonage service to validate the code
-        await check(requestId, code);
+        await check(String(requestId), String(code));
 
         // Response in case of successful verification
         return sendResponse(

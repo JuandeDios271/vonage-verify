@@ -14,8 +14,10 @@ export function parseError(err) {
     const code = match[1]
     const message = match[2] || 'Unknown error'
 
-    // Map codes to HTTP status
-    const statusCode = code.startsWith('E4') || code.startsWith('V') ? 400 : 500
+    let statusCode = 500
+    if (code === 'E403') statusCode = 403
+    else if (code === 'E429') statusCode = 429
+    else if (code.startsWith('E4') || code.startsWith('V')) statusCode = 400
 
     return { code, message, statusCode }
   }
