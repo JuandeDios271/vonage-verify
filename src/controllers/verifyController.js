@@ -26,7 +26,7 @@ export async function startVerification(req, res) {
         // Sanitize and validate the phone number
         const phone = sanitizePhone(req.body.phone);
 
-        logger.info(`'[startVerification] phone:' ${phone}`);
+        logger.info(`[startVerification] phone: ${phone}`);
 
         if (!phone) {
             return sendResponse(
@@ -40,7 +40,7 @@ export async function startVerification(req, res) {
         // Call Vonage service to start verification
         const requestId = await start(phone);
 
-        logger.info(`[startVerification] requestId:' ${requestId}`);
+        logger.info(`[startVerification] requestId: ${requestId}`);
 
         // Responds with the ID that will be used to validate the code
         return sendResponse(
@@ -51,7 +51,7 @@ export async function startVerification(req, res) {
             { requestId }
         );
     } catch (err) {
-        logger.error(`[startVerification] Error:' ${err}`);
+        logger.error(`[startVerification] Error: ${err}`);
 
         // In case of error (malformed number, Vonage error, etc.)
         const { statusCode, message } = parseError(err);
@@ -77,7 +77,7 @@ export async function checkVerification(req, res) {
 
         const { requestId, code } = req.body;
 
-        logger.info(`'[checkVerification] requestId:' ${requestId}, code: ${code}`);
+        logger.info(`[checkVerification] requestId: ${requestId}, code: ${code}`);
 
         // Basic validation of required fields
         if (!requestId || !code) {
@@ -100,7 +100,7 @@ export async function checkVerification(req, res) {
             'Code verified successfully'
         );
     } catch (err) {
-        logger.error(`[checkVerification] Error:' ${err}`);
+        logger.error(`[checkVerification] Error: ${err}`);
         // Verification failed (incorrect code, expired, etc.)
         const { statusCode, message } = parseError(err);
         return sendResponse(res, statusCode, 'verification_failed', message);
